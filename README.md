@@ -1,5 +1,5 @@
 # IPAEdit
-Mac app to change .ipa file app icons and display names
+Mac app to change .ipa file app icon, display name, and app version to avoid updates
 <br><br>
 
 ## Disclaimer
