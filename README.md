@@ -4,7 +4,7 @@ Compatible with macOS 10.11+
 <br><br>
 
 ## Install
-To install either download the latest zip from releases or clone the project and run it in XCode
+To install either download the latest zip from releases (https://github.com/ethandgoodhart/IPAEdit/releases/download/v1.0/IPAEdit.zip) or clone the project and run it in XCode
 <br><br>
 
 ## Disclaimer
