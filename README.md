@@ -5,6 +5,7 @@ Compatible with macOS 10.11+
 
 ## Install
 To install either download the latest zip from releases or clone the project and run it in XCode
+<br><br>
 
 ## Disclaimer
 Do not mess with the folders generated with IPAEdit at the end<br>
