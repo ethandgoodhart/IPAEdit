@@ -14,6 +14,7 @@ class EditController: NSViewController, NSTextFieldDelegate {
     @IBOutlet weak var version: NSTextField!
     @IBOutlet weak var iconImg: NSImageView!
     @IBOutlet weak var categoryPicker: NSPopUpButton!
+    @IBOutlet weak var bundleID: NSTextField!
     
     var appPath = URL(fileURLWithPath: "")
     var plistPath = ""
@@ -33,6 +34,7 @@ class EditController: NSViewController, NSTextFieldDelegate {
         
         displayName.delegate = self
         version.delegate = self
+        bundleID.delegate = self
     }
     
     func alert(text: String) {
@@ -61,6 +63,9 @@ class EditController: NSViewController, NSTextFieldDelegate {
                 ipaPlist["CFBundleShortVersionString"] = short.joined(separator: ".")
                 ipaPlist.write(toFile: plistPath, atomically: true)
             }
+        } else if textField == bundleID {
+            ipaPlist["CFBundleIdentifier"] = textField.stringValue
+            ipaPlist.write(toFile: plistPath, atomically: true)
         }
     }
     
@@ -83,6 +88,11 @@ class EditController: NSViewController, NSTextFieldDelegate {
             ipaPlist.write(toFile: plistPath, atomically: true)
         }
         
+        if ipaPlist["CFBundleIdentifier"] == nil {
+            ipaPlist["CFBundleIdentifier"] = "bundleident.app"
+            ipaPlist.write(toFile: plistPath, atomically: true)
+        }
+        
         if ipaPlist["CFBundleShortVersionString"] == nil {
             ipaPlist["CFBundleShortVersionString"] = "1.0.0"
             ipaPlist.write(toFile: plistPath, atomically: true)
@@ -96,6 +106,7 @@ class EditController: NSViewController, NSTextFieldDelegate {
         lastVersion = ipaPlist["CFBundleVersion"] as! String
         version.stringValue = ipaPlist["CFBundleVersion"] as! String
         displayName.stringValue = ipaPlist["CFBundleDisplayName"] as! String
+        bundleID.stringValue = ipaPlist["CFBundleIdentifier"] as! String
         
         categoryPicker.removeAllItems()
         categoryPicker.addItems(withTitles: app_categories)
