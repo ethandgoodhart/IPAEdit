@@ -119,7 +119,18 @@ class EditController: NSViewController, NSTextFieldDelegate {
             ipaPlist.write(toFile: plistPath, atomically: true)
         }
     
-        let iconNames = (primaryIconDict["CFBundleIconFiles"] as! NSArray) as! [String]
+        var iconNames = (primaryIconDict["CFBundleIconFiles"] as! NSArray) as! [String]
+        
+        if ipaPlist["CFBundleIcons~ipad"] != nil {
+            let ipadIconDict = ((ipaPlist["CFBundleIcons~ipad"] as! NSMutableDictionary)["CFBundlePrimaryIcon"] as! NSMutableDictionary)
+            
+            if ipadIconDict["CFBundleIconName"] != nil {
+                ipadIconDict.removeObject(forKey: "CFBundleIconName")
+                ipaPlist.write(toFile: plistPath, atomically: true)
+            }
+            
+            iconNames = (ipadIconDict["CFBundleIconFiles"] as! NSArray) as! [String] + iconNames
+        }
         
         for i in iconNames {
             do {
