@@ -40,7 +40,12 @@ class ViewController: NSViewController {
         DispatchQueue.main.async {
             do {
                 let payloadContents = try FileManager.default.contentsOfDirectory(at: URL(fileURLWithPath: self.ipaCopy + "/Payload"), includingPropertiesForKeys: nil, options: [.skipsSubdirectoryDescendants, .skipsHiddenFiles])
-                self.appPath = payloadContents.first!
+                for item in payloadContents {
+                    if item.absoluteString.contains(".app") {
+                        self.appPath = item
+                        break
+                    }
+                }
                 self.performSegue(withIdentifier: "editsegue", sender: self)
             } catch {
                 print("Error extracting payload from IPA \(error)")
