@@ -185,7 +185,7 @@ class EditController: NSViewController, NSTextFieldDelegate {
         
         DispatchQueue.global(qos: .userInteractive).async {
             do {
-                var exportedFileName = self.ipaFileName + " [IPAEdit]"
+                var exportedFileName = self.ipaFileName + "_IPAEdit"
                 var oc = ""
                 
                 while FileManager.default.fileExists(atPath: self.appPath.deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent(exportedFileName + oc + ".ipa").path) {
@@ -200,7 +200,7 @@ class EditController: NSViewController, NSTextFieldDelegate {
                 exportedFileName = exportedFileName + oc
                 
                 if !FileManager.default.fileExists(atPath: self.appPath.deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent(exportedFileName + ".zip").path) {
-                    try FileManager.default.zipItem(at: self.appPath.deletingLastPathComponent(), to: self.appPath.deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent(exportedFileName + ".zip"), progress: p)
+                    try FileManager.default.zipItem(at: self.appPath.deletingLastPathComponent(), to: self.appPath.deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent(exportedFileName + ".zip"), compressionMethod: .deflate, progress: p)
                 }
             
                 try FileManager.default.moveItem(at: self.appPath.deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent(exportedFileName + ".zip"), to: self.appPath.deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent(exportedFileName + ".ipa"))
