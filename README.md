@@ -1,6 +1,5 @@
 # IPAEdit
 Mac app to modify .ipa metadata including app icon, display name, and app version to avoid updates<br>
-<br><br>
 
 <img alt="App screenshot" src="screenshot.png" width="500">
 
