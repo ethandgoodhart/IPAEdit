@@ -172,18 +172,13 @@ class EditController: NSViewController, NSTextFieldDelegate {
             ("AppIcon1024x1024.png", 1024)
         ]
         
-        var newIconFiles: [String] = []
-        
         for (filename, size) in iconSizes {
             let iconPath = appPath.appendingPathComponent(filename)
             
             if let placeholderImage = createPlaceholderIcon(size: size) {
                 placeholderImage.save(to: iconPath, options: .atomic)
-                iconImages.append(iconPath)
-                
-                let baseName = filename.replacingOccurrences(of: ".png", with: "")
-                if !newIconFiles.contains(baseName) {
-                    newIconFiles.append(baseName)
+                if FileManager.default.fileExists(atPath: iconPath.path) {
+                    iconImages.append(iconPath)
                 }
             }
         }
@@ -206,8 +201,14 @@ class EditController: NSViewController, NSTextFieldDelegate {
             primaryIconDict["CFBundleIconFiles"] = iPhoneIconFiles
         }
         
-        if let cfBundleIconsIpad = ipaPlist["CFBundleIcons~ipad"] as? NSMutableDictionary,
-           let ipadIconDict = cfBundleIconsIpad["CFBundlePrimaryIcon"] as? NSMutableDictionary {
+        if ipaPlist["CFBundleIcons~ipad"] == nil {
+            let ipadIconDict = NSMutableDictionary()
+            ipadIconDict["CFBundleIconFiles"] = iPadIconFiles
+            let cfBundleIconsIpad = NSMutableDictionary()
+            cfBundleIconsIpad["CFBundlePrimaryIcon"] = ipadIconDict
+            ipaPlist["CFBundleIcons~ipad"] = cfBundleIconsIpad
+        } else if let cfBundleIconsIpad = ipaPlist["CFBundleIcons~ipad"] as? NSMutableDictionary,
+                  let ipadIconDict = cfBundleIconsIpad["CFBundlePrimaryIcon"] as? NSMutableDictionary {
             ipadIconDict["CFBundleIconFiles"] = iPadIconFiles
         }
         
