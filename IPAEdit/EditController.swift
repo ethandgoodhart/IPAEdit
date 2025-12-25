@@ -112,24 +112,35 @@ class EditController: NSViewController, NSTextFieldDelegate {
         categoryPicker.addItems(withTitles: app_categories)
         categoryPicker.selectItem(at: categoryPicker.indexOfItem(withTitle: ipaPlist["LSApplicationCategoryType"] as! String))
         
-        let primaryIconDict = ((ipaPlist["CFBundleIcons"] as! NSMutableDictionary)["CFBundlePrimaryIcon"] as! NSMutableDictionary)
+        var iconNames: [String] = []
+        var usesAssetCatalog = false
         
-        if primaryIconDict["CFBundleIconName"] != nil {
-            primaryIconDict.removeObject(forKey: "CFBundleIconName")
-            ipaPlist.write(toFile: plistPath, atomically: true)
-        }
-    
-        var iconNames = (primaryIconDict["CFBundleIconFiles"] as! NSArray) as! [String]
-        
-        if ipaPlist["CFBundleIcons~ipad"] != nil {
-            let ipadIconDict = ((ipaPlist["CFBundleIcons~ipad"] as! NSMutableDictionary)["CFBundlePrimaryIcon"] as! NSMutableDictionary)
+        if let cfBundleIcons = ipaPlist["CFBundleIcons"] as? NSMutableDictionary,
+           let primaryIconDict = cfBundleIcons["CFBundlePrimaryIcon"] as? NSMutableDictionary {
             
-            if ipadIconDict["CFBundleIconName"] != nil {
-                ipadIconDict.removeObject(forKey: "CFBundleIconName")
+            if primaryIconDict["CFBundleIconName"] != nil {
+                primaryIconDict.removeObject(forKey: "CFBundleIconName")
+                usesAssetCatalog = true
                 ipaPlist.write(toFile: plistPath, atomically: true)
             }
             
-            iconNames = (ipadIconDict["CFBundleIconFiles"] as! NSArray) as! [String] + iconNames
+            if let iconFiles = primaryIconDict["CFBundleIconFiles"] as? [String] {
+                iconNames = iconFiles
+            }
+        }
+        
+        if let cfBundleIconsIpad = ipaPlist["CFBundleIcons~ipad"] as? NSMutableDictionary,
+           let ipadIconDict = cfBundleIconsIpad["CFBundlePrimaryIcon"] as? NSMutableDictionary {
+            
+            if ipadIconDict["CFBundleIconName"] != nil {
+                ipadIconDict.removeObject(forKey: "CFBundleIconName")
+                usesAssetCatalog = true
+                ipaPlist.write(toFile: plistPath, atomically: true)
+            }
+            
+            if let ipadIconFiles = ipadIconDict["CFBundleIconFiles"] as? [String] {
+                iconNames = ipadIconFiles + iconNames
+            }
         }
         
         for i in iconNames {
@@ -146,6 +157,74 @@ class EditController: NSViewController, NSTextFieldDelegate {
                 print(error)
             }
         }
+        
+        if iconImages.isEmpty || usesAssetCatalog {
+            createIconFilesForAssetCatalogApp()
+        }
+    }
+    
+    func createIconFilesForAssetCatalogApp() {
+        let iconSizes: [(String, Int)] = [
+            ("AppIcon60x60@2x.png", 120),
+            ("AppIcon60x60@3x.png", 180),
+            ("AppIcon76x76@2x~ipad.png", 152),
+            ("AppIcon83.5x83.5@2x~ipad.png", 167),
+            ("AppIcon1024x1024.png", 1024)
+        ]
+        
+        for (filename, size) in iconSizes {
+            let iconPath = appPath.appendingPathComponent(filename)
+            
+            if let placeholderImage = createPlaceholderIcon(size: size) {
+                placeholderImage.save(to: iconPath, options: .atomic)
+                if FileManager.default.fileExists(atPath: iconPath.path) {
+                    iconImages.append(iconPath)
+                }
+            }
+        }
+        
+        if !iconImages.isEmpty {
+            iconImg.image = NSImage(contentsOf: iconImages.last!)
+        }
+        
+        let iPhoneIconFiles = ["AppIcon60x60"]
+        let iPadIconFiles = ["AppIcon60x60", "AppIcon76x76", "AppIcon83.5x83.5"]
+        
+        if ipaPlist["CFBundleIcons"] == nil {
+            let primaryIconDict = NSMutableDictionary()
+            primaryIconDict["CFBundleIconFiles"] = iPhoneIconFiles
+            let cfBundleIcons = NSMutableDictionary()
+            cfBundleIcons["CFBundlePrimaryIcon"] = primaryIconDict
+            ipaPlist["CFBundleIcons"] = cfBundleIcons
+        } else if let cfBundleIcons = ipaPlist["CFBundleIcons"] as? NSMutableDictionary,
+                  let primaryIconDict = cfBundleIcons["CFBundlePrimaryIcon"] as? NSMutableDictionary {
+            primaryIconDict["CFBundleIconFiles"] = iPhoneIconFiles
+        }
+        
+        if ipaPlist["CFBundleIcons~ipad"] == nil {
+            let ipadIconDict = NSMutableDictionary()
+            ipadIconDict["CFBundleIconFiles"] = iPadIconFiles
+            let cfBundleIconsIpad = NSMutableDictionary()
+            cfBundleIconsIpad["CFBundlePrimaryIcon"] = ipadIconDict
+            ipaPlist["CFBundleIcons~ipad"] = cfBundleIconsIpad
+        } else if let cfBundleIconsIpad = ipaPlist["CFBundleIcons~ipad"] as? NSMutableDictionary,
+                  let ipadIconDict = cfBundleIconsIpad["CFBundlePrimaryIcon"] as? NSMutableDictionary {
+            ipadIconDict["CFBundleIconFiles"] = iPadIconFiles
+        }
+        
+        ipaPlist.write(toFile: plistPath, atomically: true)
+    }
+    
+    func createPlaceholderIcon(size: Int) -> NSImage? {
+        let nsSize = NSSize(width: size, height: size)
+        let image = NSImage(size: nsSize)
+        
+        image.lockFocus()
+        NSColor.gray.setFill()
+        NSRect(x: 0, y: 0, width: size, height: size).fill()
+        image.unlockFocus()
+        
+        return image
     }
 
     @IBAction func changeBtnClicked(_ sender: Any) {
